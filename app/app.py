@@ -14,16 +14,22 @@ async def root() -> dict:
 
 @app.put("/{id}/isAlerting")
 async def setIsAlerting(id: str, value: bool = Body(...)) -> bool:
-    ref = db.reference(f"{id}/isAlerting")
-    val: bool = ref.get()
+    alertRef = db.reference(f"{id}/isAlerting")
+    valRef = db.reference(f"{id}/isAlerting")
+
+    val: bool = alertRef.get()
 
     if (val is None):
         raise HTTPException(400, "Invalid Serial ID")
 
     if (val != value):
-        ref.set(value)
+        alertRef.set(value)
 
         if (value):
-            print(messaging.send(messaging.Message(topic=id)))
+            print(messaging.send(messaging.Message(
+                notification=messaging.Notification(
+                    title='Alert! Gas Leak!',
+                    body=f'Sensor reads {valRef}'
+                ), topic=id)))
 
     return value
