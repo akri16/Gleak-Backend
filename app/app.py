@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.params import Body
 from firebase_admin import messaging, db
 from fastapi.exceptions import HTTPException
+import time
 
 
 app = FastAPI()
@@ -15,7 +16,8 @@ async def root() -> dict:
 @app.put("/{id}/isAlerting")
 async def setIsAlerting(id: str, value: bool = Body(...)) -> bool:
     alertRef = db.reference(f"{id}/isAlerting")
-    valRef = db.reference(f"{id}/isAlerting")
+    valRef = db.reference(f"{id}/value")
+    notificRef = db.reference(f"{id}/notifications")
 
     val: bool = alertRef.get()
 
@@ -26,10 +28,20 @@ async def setIsAlerting(id: str, value: bool = Body(...)) -> bool:
         alertRef.set(value)
 
         if (value):
+
+            notificData = {
+                'title': 'Alert! Gas Leak!',
+                'body': f'Sensor reads {valRef.get()}',
+                'time': round(time.time())
+            }
+
+            notific = messaging.Notification(
+                    title=notificData['title'],
+                    body=notificData['body'])
+
             print(messaging.send(messaging.Message(
-                notification=messaging.Notification(
-                    title='Alert! Gas Leak!',
-                    body=f'Sensor reads {valRef}'
-                ), topic=id)))
+                notification=notific, topic=id)))
+
+            notificRef.push(value=notificData)
 
     return value
