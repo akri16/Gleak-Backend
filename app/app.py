@@ -5,7 +5,7 @@ from fastapi.exceptions import HTTPException
 import time
 
 
-app = FastAPI()
+app = FastAPI(title="Gleak Backend")
 
 
 @app.get("/")
