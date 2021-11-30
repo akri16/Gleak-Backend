@@ -48,7 +48,7 @@ async def setIsAlerting(id: str, value: bool = Body(...)) -> bool:
 
 
 
-@app.put("/{id}/value", response_model=bool)
+@app.put("/{id}/value", response_model=int)
 def setCurrentVal(id: str, value: int = Body(...)): 
     alertRef = db.reference(f"{id}/isAlerting")
     valRef = db.reference(f"{id}/value")
