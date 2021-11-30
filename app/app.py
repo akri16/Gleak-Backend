@@ -13,7 +13,7 @@ async def root() -> dict:
     return {"message": "Hello World"}
 
 
-@app.put("/{id}/isAlerting")
+@app.put("/{id}/isAlerting", response_model=bool)
 async def setIsAlerting(id: str, value: bool = Body(...)) -> bool:
     alertRef = db.reference(f"{id}/isAlerting")
     valRef = db.reference(f"{id}/value")
@@ -39,9 +39,25 @@ async def setIsAlerting(id: str, value: bool = Body(...)) -> bool:
                     title=notificData['title'],
                     body=notificData['body'])
 
-            print(messaging.send(messaging.Message(
-                notification=notific, topic=id)))
+            # print(messaging.send(messaging.Message(
+            #     notification=notific, topic=id)))
 
             notificRef.push(value=notificData)
+
+    return value
+
+
+
+@app.put("/{id}/value", response_model=bool)
+def setCurrentVal(id: str, value: int = Body(...)): 
+    alertRef = db.reference(f"{id}/isAlerting")
+    valRef = db.reference(f"{id}/value")
+
+    val: bool = alertRef.get()
+
+    if (val is None):
+        raise HTTPException(400, "Invalid Serial ID")
+
+    valRef.set(value)
 
     return value
